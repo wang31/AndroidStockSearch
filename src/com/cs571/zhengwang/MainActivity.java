@@ -9,24 +9,39 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+
+
+
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
-
+	private static String serverResponse = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -35,6 +50,11 @@ public class MainActivity extends ActionBarActivity {
 		if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
+			
+	            FirstFragment firstFragment = new FirstFragment();
+	            // Add the fragment to the 'fragment_container' FrameLayout
+	            getSupportFragmentManager().beginTransaction()
+	                    .add(R.id.fragment_place, firstFragment).commit();
 		}
 	}
 
@@ -75,6 +95,17 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 	
+	public void displayNews(View view){
+		/*SecondFragment fr = new SecondFragment();
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		transaction.replace(R.id.fragment_place, fr);
+		transaction.addToBackStack(null);
+		transaction.commit();*/
+		Intent intent = new Intent(this, HeadlinesActivity.class);
+		intent.putExtra("com.csci571.zhengwang.message", serverResponse);
+		startActivity(intent);
+	}
+	
 	public void query(View view){
 		ConnectivityManager conManager = (ConnectivityManager) 
 		        getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -87,8 +118,8 @@ public class MainActivity extends ActionBarActivity {
 			new QueryServletTask().execute(url);
 		} else {
 		     // display error
-			TextView textview = (TextView) findViewById(R.id.textview);
-			textview.setText("No network connection available.");
+			WebView webview = (WebView) findViewById(R.id.webview);
+    		webview.loadData("No network connection available.", "text/html", "UTF-8");
 		}
 
 	}
@@ -101,14 +132,71 @@ public class MainActivity extends ActionBarActivity {
             try {
                 return downloadUrl(urls[0]);
             } catch (IOException e) {
-                return "Unable to retrieve data from servlet. URL may be invalid.";
+                return "Error: Unable to retrieve data from servlet. URL may be invalid.";
             }
         }
+        
+        private String formatOneLine(String a, String b){
+        	int lena = a.length();
+        	int lenb = b.length();
+        	StringBuilder sb = new StringBuilder();
+        	sb.append(a);
+        	int remain = 32 - lena -lenb;
+        	for(int i = 0; i < remain; i++)
+        		sb.append(" ");
+        	sb.append(b);
+        	return sb.toString();
+        }
+        
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-        	TextView textview = (TextView) findViewById(R.id.textview);
-            textview.setText(result);
+        	if(result.contains("Error")){
+        		WebView webview = (WebView) findViewById(R.id.webview);
+        		webview.loadData(result, "text/html", "UTF-8");
+        		findViewById(R.id.webview).setVisibility(View.VISIBLE);
+        		findViewById(R.id.newsbutton).setVisibility(View.INVISIBLE);
+        		findViewById(R.id.newsbutton).setEnabled(false);
+				findViewById(R.id.fbbutton).setVisibility(View.INVISIBLE);
+				findViewById(R.id.fbbutton).setEnabled(false);
+        	}else{
+        		try {
+        			serverResponse = result;
+					JSONObject json = new JSONObject(result);
+					JSONObject jsonresult = json.getJSONObject("result");
+					WebView webview = (WebView) findViewById(R.id.webview);
+					String text = "<div><center>" + jsonresult.getString("Name") + "(" + jsonresult.getString("Symbol") + ")</center>";
+					JSONObject jsonquote = jsonresult.getJSONObject("Quote");
+					text += "<center>" + jsonquote.getString("LastTradePriceOnly") + "</center>";
+					if(jsonquote.getString("ChangeType").equals("+")){
+						text += "<center>" + "<img src='http://www-scf.usc.edu/~csci571/2014Spring/hw6/up_g.gif'><span style='color:rgb(0,220,0)'>" + jsonquote.getString("Change") + "(" + jsonquote.getString("ChangeInPercent") + ")</span></center>";
+					}else{
+						text += "<center>" + "<img src='http://www-scf.usc.edu/~csci571/2014Spring/hw6/down_r.gif'><span style='color:rgb(255,0,0)'>" + jsonquote.getString("Change") + "(" + jsonquote.getString("ChangeInPercent") + ")</span></center>";
+					}
+					text += "<pre>     " + formatOneLine("Prev Close", jsonquote.getString("PreviousClose")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Open", jsonquote.getString("Open")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Bid", jsonquote.getString("Bid")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Ask", jsonquote.getString("Ask")) + "</pre>";
+					text += "<pre>     " + formatOneLine("1st Yr Target", jsonquote.getString("OneYearTargetPrice")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Day Range", jsonquote.getString("DaysLow") + "-" + jsonquote.getString("DaysHigh")) + "</pre>";
+					text += "<pre>     " + formatOneLine("52 wk Range", jsonquote.getString("YearLow") + "-" + jsonquote.getString("YearHigh")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Volume", jsonquote.getString("Volume")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Avg Vol(3m)", jsonquote.getString("AverageDailyVolume")) + "</pre>";
+					text += "<pre>     " + formatOneLine("Market Cap", jsonquote.getString("MarketCapitalization")) + "</pre>";
+					//text += "<span style='text-align:left'>Market Cap</span>" + "<span style='text-align:right'>" + jsonquote.getString("MarketCapitalization") + "</span>";
+					text += "<center><img src='" + jsonresult.getString("StockChartImageURL") + "'></center></div>";
+					webview.loadData(text, "text/html", "UTF-8");
+					findViewById(R.id.webview).setVisibility(View.VISIBLE);
+					findViewById(R.id.newsbutton).setVisibility(View.VISIBLE);
+					findViewById(R.id.newsbutton).setEnabled(true);
+					findViewById(R.id.fbbutton).setVisibility(View.VISIBLE);
+					findViewById(R.id.fbbutton).setEnabled(true);
+					
+        		} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
        }
        
     }
@@ -134,7 +222,7 @@ public class MainActivity extends ActionBarActivity {
 	        	return content;
 	        }
 	        else
-	        	return "HTTP Connection Error. Error Code: " + Integer.toString(response);
+	        	return "Error: HTTP Connection Error. Error Code: " + Integer.toString(response);
 	    // Makes sure that the InputStream is closed after the app is
 	    // finished using it.
 	    } finally {

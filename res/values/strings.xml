@@ -6,5 +6,10 @@
     <string name="input">Please enter a company symbol</string>
     <string name="button_query">Search</string>
     <string name="title">Stock Search</string>
+    <string name="Chart">Chart of the Stock</string>
+    <string name="newsbutton">News Headlines</string>
+    <string name="fbbutton">Facebook</string>
+    <string name="title_activity_headlines">News Headlines</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>

@@ -9,13 +9,12 @@
         android:targetSdkVersion="19" />
 
     <uses-permission
-     android:name="android.permission.ACCESS_NETWORK_STATE"
-     android:maxSdkVersion="19" />
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        android:maxSdkVersion="19" />
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        android:maxSdkVersion="19" />
 
-     <uses-permission
-     android:name="android.permission.INTERNET"
-     android:maxSdkVersion="19" />
-    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -30,6 +29,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.cs571.zhengwang.HeadlinesActivity"
+            android:label="@string/title_activity_headlines"
+            android:parentActivityName="com.cs571.zhengwang.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.cs571.zhengwang.MainActivity" />
+        </activity>
     </application>
-    
+
 </manifest>

@@ -23,7 +23,12 @@
         	android:text="@string/button_query"
         	android:onClick="query" />
 	</LinearLayout>
-	<TextView android:id="@+id/textview"
-	    android:layout_height="match_parent"
-	    android:layout_width="match_parent"/>
+	<!--<fragment android:name="com.cs571.zhengwang.FirstFragment" 
+	    	android:id="@+id/fragment_place"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent" />-->
+	<FrameLayout
+    android:id="@+id/fragment_place"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
 </LinearLayout>
