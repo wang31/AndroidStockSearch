@@ -1,10 +1,17 @@
 package com.cs571.zhengwang;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.os.Build;
 
 public class HeadlinesActivity extends ActionBarActivity {
@@ -30,6 +38,8 @@ public class HeadlinesActivity extends ActionBarActivity {
 			Intent intent = getIntent();
 			message = intent.getStringExtra("com.csci571.zhengwang.message");
 			TextView txtview = (TextView)findViewById(R.id.headlinesview);
+			displayNews();
+			//displayToast();
 			//txtview.loadData("<a href='www.cnn.com'>cnn is a mother fucking bitch</a>", "text/html", "UTF-8");
 			//txtview.setText(message);
 			//txtview.setText(Html.fromHtml("<a href='www.cnn.com'>cnn is a mother fucking bitch</a>"));
@@ -37,7 +47,41 @@ public class HeadlinesActivity extends ActionBarActivity {
 			//txtview.setText("<a href='www.cnn.com'>cnn</a><br>");
 			//txtview.setText(Html.fromHtml("<a href='www.cnn.com'>bbc</a><br>"));
 	}
+	private void displayNews(){
+		try{
+			JSONObject json = new JSONObject(message);
+			JSONArray ja = json.getJSONObject("result").getJSONObject("News").getJSONArray("Item"); 
+			int len = ja.length();
+			for(int i = 0; i < len; i++){
+				SpannableString ss = new SpannableString(ja.getJSONObject(i).getString("Title") + "\n");
+				ClickableSpan clickableSpan = new ClickableSpan() {
+					@Override
+					public void onClick(View textView) {
+						displayToast();
+					}
+				};
+				ss.setSpan(clickableSpan, 0, ss.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
+				TextView textView = (TextView) findViewById(R.id.headlinesview);
+				textView.append(ss);
+				textView.setMovementMethod(LinkMovementMethod.getInstance());
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	private void displayToast(){
+		try{
+			JSONObject json = new JSONObject(message);
+			int len = json.getJSONObject("result").getJSONObject("News").getJSONArray("Item").length();
+			Context context = getApplicationContext();
+			CharSequence text = "Showing " + Integer.toString(len) + " headlines";
+			int duration = Toast.LENGTH_SHORT;
+			Toast.makeText(context, text, duration).show();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 
