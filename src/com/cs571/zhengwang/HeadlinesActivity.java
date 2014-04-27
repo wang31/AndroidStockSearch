@@ -11,6 +11,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,25 +21,40 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
 
-public class HeadlinesActivity extends ActionBarActivity {
+public class HeadlinesActivity extends ListActivity {
 	private static String message = null;
+	private static String[] titles = null;
+	private static String[] urls = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_headlines);
-
+		//setContentView(R.layout.activity_headlines);
+		Intent intent = getIntent();
+		message = intent.getStringExtra("com.csci571.zhengwang.message");
+		init();
+		displayToast();
+		setListAdapter(new ArrayAdapter<String>(this, R.layout.list_titles, titles));
+		ListView listview = getListView();
+		listview.setOnItemClickListener(new OnItemClickListener() {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+				
+			}
+		});
 		/*if (savedInstanceState == null) {
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();*/
 		
-			Intent intent = getIntent();
-			message = intent.getStringExtra("com.csci571.zhengwang.message");
-			TextView txtview = (TextView)findViewById(R.id.headlinesview);
-			displayNews();
+			
+			//TextView txtview = (TextView)findViewById(R.id.headlinesview);
+			//displayNews();
 			//displayToast();
 			//txtview.loadData("<a href='www.cnn.com'>cnn is a mother fucking bitch</a>", "text/html", "UTF-8");
 			//txtview.setText(message);
@@ -46,6 +62,22 @@ public class HeadlinesActivity extends ActionBarActivity {
 			//txtview.setMovementMethod(LinkMovementMethod.getInstance());
 			//txtview.setText("<a href='www.cnn.com'>cnn</a><br>");
 			//txtview.setText(Html.fromHtml("<a href='www.cnn.com'>bbc</a><br>"));
+	}
+	
+	private void init(){
+		try{
+			JSONObject json = new JSONObject(message);
+			JSONArray ja = json.getJSONObject("result").getJSONObject("News").getJSONArray("Item"); 
+			int len = ja.length();
+			titles = new String[len];
+			urls = new String[len];
+			for(int i = 0; i < len; i++){
+				titles[i] = ja.getJSONObject(i).getString("Title");
+				urls[i] = ja.getJSONObject(i).getString("Link");
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	private void displayNews(){
 		try{
