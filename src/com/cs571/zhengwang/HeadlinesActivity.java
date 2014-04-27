@@ -11,9 +11,12 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,11 +31,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Build;
+import android.app.AlertDialog;
 
 public class HeadlinesActivity extends ListActivity {
 	private static String message = null;
 	private static String[] titles = null;
 	private static String[] urls = null;
+	private static int current = 0;
+	private final Context context = this;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -45,7 +51,31 @@ public class HeadlinesActivity extends ListActivity {
 		ListView listview = getListView();
 		listview.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-				
+				current = position;
+				AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+				alertDialogBuilder.setMessage("View News");
+				alertDialogBuilder.setCancelable(false);
+				alertDialogBuilder.setPositiveButton("View", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// TODO Auto-generated method stub
+						Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(urls[current]));
+						startActivity(intent);
+					}
+				});
+				alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// TODO Auto-generated method stub
+						dialog.cancel();
+					}
+				});	
+				try{
+					AlertDialog alertDialog = alertDialogBuilder.create();
+					alertDialog.show();
+				}catch(Exception e){
+					e.printStackTrace();
+				}
 			}
 		});
 		/*if (savedInstanceState == null) {
