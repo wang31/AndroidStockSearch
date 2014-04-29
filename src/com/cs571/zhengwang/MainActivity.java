@@ -246,6 +246,7 @@ public class MainActivity extends ActionBarActivity {
 			}catch(Exception e){
 				e.printStackTrace();
 			}
+			clearWebview();
 	}
 	public void query(String symbol){
 		ConnectivityManager conManager = (ConnectivityManager) 
@@ -283,6 +284,18 @@ public class MainActivity extends ActionBarActivity {
     		webview.loadData("No network connection available.", "text/html", "UTF-8");
 		}
 	}
+	
+	private void clearWebview(){
+    	WebView webview = (WebView) findViewById(R.id.webview);
+    	
+    	webview.loadData("", "text/html", "UTF-8");
+    	findViewById(R.id.webview).setVisibility(View.INVISIBLE);
+    	findViewById(R.id.newsbutton).setVisibility(View.INVISIBLE);
+    	findViewById(R.id.newsbutton).setEnabled(false);
+    	findViewById(R.id.fbbutton).setVisibility(View.INVISIBLE);
+    	findViewById(R.id.fbbutton).setEnabled(false);
+    	
+    }
 	
 	private class QueryServletTask extends AsyncTask<String, Void, String> {
         @Override
