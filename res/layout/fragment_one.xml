@@ -34,6 +34,7 @@
         android:layout_height="wrap_content"
         android:visibility="invisible"
         android:enabled="false"
+        android:onClick="postFB"
         android:text="@string/fbbutton" />
     </LinearLayout>
 

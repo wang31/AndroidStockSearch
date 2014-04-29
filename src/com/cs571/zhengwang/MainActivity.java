@@ -13,6 +13,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.facebook.FacebookException;
+import com.facebook.LoggingBehavior;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.Settings;
+import com.facebook.widget.WebDialog;
+import com.facebook.widget.WebDialog.OnCompleteListener;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -32,6 +40,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -40,12 +49,14 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
 	private static String serverResponse = null;
 	private static String[] suggestions = null;
+	private Session.StatusCallback statusCallback = new SessionStatusCallback();
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -77,7 +88,15 @@ public class MainActivity extends ActionBarActivity {
     	        		query(symbol);
     	        	}
     	        });
-        		
+    	        Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+    	        Session session = Session.getActiveSession();
+    	        if (session == null) {
+    	        	session = new Session(this);
+    	        	Session.setActiveSession(session);
+    	        	/*if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+    	                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+    	            }*/
+    	        }
 	            
 		}
 	}
@@ -132,7 +151,82 @@ public class MainActivity extends ActionBarActivity {
 		intent.putExtra("com.csci571.zhengwang.message", serverResponse);
 		startActivity(intent);
 	}
+	//----------------------FB----------------
+	public void postFB(View view){
+		Session session = Session.getActiveSession();
+        if (!session.isOpened() && !session.isClosed()) {
+            session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+        } else {
+            Session.openActiveSession(this, true, statusCallback);
+        }
+	}
+	private class SessionStatusCallback implements Session.StatusCallback {
+        @Override
+        public void call(Session session, SessionState state, Exception exception) {
+            doPost();
+        }
+    }
+	private void doPost() {
+		Session session = Session.getActiveSession();
+        if (session.isOpened()) {
+        	try{
+        		JSONObject json = new JSONObject(serverResponse);
+        		JSONObject jsonresult = json.getJSONObject("result");
+        		String name = jsonresult.getString("Name");
+        		String link = "http://finance.yahoo.com/q?s=" + jsonresult.getString("Symbol");
+        		String picture = jsonresult.getString("StockChartImageURL");
+        		String description = "Stock Information of " + jsonresult.getString("Name") + " (" + jsonresult.getString("Symbol") + ")      ";
+        		description += "Last Trade Price: " + jsonresult.getJSONObject("Quote").getString("LastTradePriceOnly") + ", " + "Change: " + jsonresult.getJSONObject("Quote").getString("ChangeType") + jsonresult.getJSONObject("Quote").getString("Change") + "(" + jsonresult.getJSONObject("Quote").getString("ChangeInPercent") + ")";
+        		Bundle params = new Bundle();
+        		params.putString("name", name);
+        		params.putString("link", link);
+        		params.putString("picture", picture);
+        		params.putString("description", description);
+
+        		WebDialog feedDialog = (
+        	        new WebDialog.FeedDialogBuilder(this,
+        	            Session.getActiveSession(),
+        	            params))
+        	        .setOnCompleteListener(new OnCompleteListener(){
+
+						@Override
+						public void onComplete(Bundle values,
+								FacebookException error) {
+							// TODO Auto-generated method stub
+							if(values.containsKey("post_id")){
+								displayToast("Posted Succesfully");
+							}
+							else{
+								displayToast("Canceled");
+							}
+						}})
+        	        .build();
+        	    feedDialog.show();
+        	}catch(Exception e){
+        		e.printStackTrace();
+        	}
+        } else {
+            displayToast("Login error");
+        }
+    }
 	
+	private void displayToast(String s){
+		try{
+			Context context = getApplicationContext();
+			CharSequence text = s;
+			int duration = Toast.LENGTH_SHORT;
+			Toast.makeText(context, text, duration).show();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
+	
+	//----------------------FB----------------
 	public void query(String symbol){
 		ConnectivityManager conManager = (ConnectivityManager) 
 		        getSystemService(Context.CONNECTIVITY_SERVICE);
