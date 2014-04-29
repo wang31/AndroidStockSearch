@@ -73,6 +73,7 @@ public class MainActivity extends ActionBarActivity {
     	        	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3){
     	        		String item = (String)arg0.getItemAtPosition(arg2);
     	        		String symbol = item.substring(0, item.indexOf(","));
+    	        		setTextField(symbol);
     	        		query(symbol);
     	        	}
     	        });
@@ -80,7 +81,10 @@ public class MainActivity extends ActionBarActivity {
 	            
 		}
 	}
-
+	private void setTextField(String symbol){
+		AutoCompleteTextView tx = (AutoCompleteTextView)findViewById(R.id.input);
+		tx.setText(symbol);
+	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 
