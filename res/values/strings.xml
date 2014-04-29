@@ -11,5 +11,6 @@
     <string name="fbbutton">Facebook</string>
     <string name="title_activity_headlines">News Headlines</string>
     <string name="hello_world">Hello world!</string>
-
+    <string name="app_id">620014871408712</string>
+	
 </resources>
