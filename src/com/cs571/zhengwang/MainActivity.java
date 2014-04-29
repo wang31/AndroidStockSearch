@@ -382,7 +382,7 @@ public class MainActivity extends ActionBarActivity {
 	        	return content;
 	        }
 	        else
-	        	return "Error: HTTP Connection Error. Error Code: " + Integer.toString(response);
+	        	return "Error: No such stock. HTTP Connection Error. Error Code: " + Integer.toString(response);
 	    // Makes sure that the InputStream is closed after the app is
 	    // finished using it.
 	    } finally {
