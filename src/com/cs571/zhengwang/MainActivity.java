@@ -199,7 +199,7 @@ public class MainActivity extends ActionBarActivity {
 								displayToast("Posted Succesfully");
 							}
 							else{
-								displayToast("Canceled");
+								displayToast("Post Canceled");
 							}
 						}})
         	        .build();
