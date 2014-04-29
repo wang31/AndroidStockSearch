@@ -9,12 +9,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-
-
-
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,7 +23,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,6 +33,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -42,19 +45,39 @@ import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
 	private static String serverResponse = null;
+	private static String[] suggestions = null;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState == null) {
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
+			/*getSupportFragmentManager().beginTransaction()
+					.add(R.id.container, new PlaceholderFragment()).commit();*/
 			
 	            FirstFragment firstFragment = new FirstFragment();
 	            // Add the fragment to the 'fragment_container' FrameLayout
 	            getSupportFragmentManager().beginTransaction()
 	                    .add(R.id.fragment_place, firstFragment).commit();
+	            
+	            AutoCompleteTextView tx = (AutoCompleteTextView)findViewById(R.id.input);
+	            tx.addTextChangedListener(new TextWatcher(){
+	            	public void onTextChanged(CharSequence s, int start, int before, int count){
+	            		getSuggestions(s.toString());
+	            	}
+	            	public void afterTextChanged(Editable s) {}
+	                public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+	            });
+    	        tx.setThreshold(1);
+    	        tx.setOnItemClickListener(new OnItemClickListener(){
+    	        	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3){
+    	        		String item = (String)arg0.getItemAtPosition(arg2);
+    	        		String symbol = item.substring(0, item.indexOf(","));
+    	        		query(symbol);
+    	        	}
+    	        });
+        		
+	            
 		}
 	}
 
@@ -106,6 +129,21 @@ public class MainActivity extends ActionBarActivity {
 		startActivity(intent);
 	}
 	
+	public void query(String symbol){
+		ConnectivityManager conManager = (ConnectivityManager) 
+		        getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = conManager.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnected()) {
+		     // fetch data
+			String url = "http://cs-server.usc.edu:36586/examples/servlet/HW8Servlet?symbol=" + symbol;
+			new QueryServletTask().execute(url);
+		} else {
+		     // display error
+			WebView webview = (WebView) findViewById(R.id.webview);
+    		webview.loadData("No network connection available.", "text/html", "UTF-8");
+		}
+	}
+	
 	public void query(View view){
 		ConnectivityManager conManager = (ConnectivityManager) 
 		        getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -121,7 +159,6 @@ public class MainActivity extends ActionBarActivity {
 			WebView webview = (WebView) findViewById(R.id.webview);
     		webview.loadData("No network connection available.", "text/html", "UTF-8");
 		}
-
 	}
 	
 	private class QueryServletTask extends AsyncTask<String, Void, String> {
@@ -253,6 +290,53 @@ public class MainActivity extends ActionBarActivity {
 	    }
 	    return sb.toString();
 	}
-
-
+	
+	private void getSuggestions(String input){
+		String url = "http://autoc.finance.yahoo.com/autoc?query=" + input + "&callback=YAHOO.Finance.SymbolSuggest.ssCallback";
+		new getSuggestionsTask().execute(url);
+	}
+	
+	private void setAutoCompleteAdapter(){
+		ArrayAdapter adapter = new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,suggestions);
+		AutoCompleteTextView tx = (AutoCompleteTextView)findViewById(R.id.input);
+		tx.setAdapter(adapter);
+		if(tx.getText().toString().length() == 1){
+			tx.showDropDown();
+		}
+	}
+	private class getSuggestionsTask extends AsyncTask<String, Void, String> {
+		protected String doInBackground(String... urls) {
+            
+            // params comes from the execute() call: params[0] is the url.
+            try {
+                return downloadUrl(urls[0]);
+            } catch (IOException e) {
+                return "Error: Unable to retrieve data from servlet. URL may be invalid.";
+            }
+        }
+		
+		protected void onPostExecute(String result) {
+			if(!result.contains("Error")){
+				String data = result.substring(39, result.length() - 1);
+				try{
+					JSONObject json = new JSONObject(data);
+					JSONArray jarray = json.getJSONObject("ResultSet").getJSONArray("Result");
+					suggestions = new String[jarray.length()];
+					for(int i = 0; i < jarray.length(); i++){
+						JSONObject item = jarray.getJSONObject(i);
+						String suggest = item.getString("symbol") + ", " + item.getString("name") + "(" + item.getString("exch") + ")";
+						suggestions[i] = suggest;
+					}
+					setAutoCompleteAdapter();
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+				
+			}
+		}
+	}
+	//YAHOO.Finance.SymbolSuggest.ssCallback
+	//private class YAHOO{
+		
+	//}
 }

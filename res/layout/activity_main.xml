@@ -1,7 +1,43 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.cs571.zhengwang.MainActivity"
-    tools:ignore="MergeRootFrame" />
+    tools:ignore="MergeRootFrame" />-->
+    
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+	<TextView android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:gravity="center"
+	    android:textSize="20sp"
+	    android:text="@string/title"/>
+	<LinearLayout android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+    	android:orientation="horizontal"
+    	tools:context="com.cs571.zhengwang.MainActivity$PlaceholderFragment" >
+		<AutoCompleteTextView android:id="@+id/input"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:hint="@string/input"
+        	android:layout_weight="1" />
+		<Button
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="@string/button_query"
+        	android:onClick="query" />
+	</LinearLayout>
+	<!--<fragment android:name="com.cs571.zhengwang.FirstFragment" 
+	    	android:id="@+id/fragment_place"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent" />-->
+	<FrameLayout
+    android:id="@+id/fragment_place"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+</LinearLayout>
+
