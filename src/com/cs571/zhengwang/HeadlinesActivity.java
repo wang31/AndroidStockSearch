@@ -102,7 +102,13 @@ public class HeadlinesActivity extends ListActivity {
 			titles = new String[len];
 			urls = new String[len];
 			for(int i = 0; i < len; i++){
-				titles[i] = ja.getJSONObject(i).getString("Title");
+				if(ja.getJSONObject(i).getString("Title").contains("\ufffd")){
+					String temp = ja.getJSONObject(i).getString("Title");
+					temp = temp.replaceFirst("\ufffd", "'");
+					titles[i] = temp.replace("\ufffd", "");
+				}
+				else
+					titles[i] = ja.getJSONObject(i).getString("Title");
 				urls[i] = ja.getJSONObject(i).getString("Link");
 			}
 		}catch(Exception e){

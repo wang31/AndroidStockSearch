@@ -21,7 +21,9 @@ import com.facebook.Settings;
 import com.facebook.widget.WebDialog;
 import com.facebook.widget.WebDialog.OnCompleteListener;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -227,6 +229,24 @@ public class MainActivity extends ActionBarActivity {
     }
 	
 	//----------------------FB----------------
+	private void showNoInputAlert(){
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setMessage("Please enter a company symbol first!");
+			alertDialogBuilder.setCancelable(false);
+			alertDialogBuilder.setNegativeButton("ok", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO Auto-generated method stub
+					dialog.cancel();
+				}
+			});
+			try{
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+	}
 	public void query(String symbol){
 		ConnectivityManager conManager = (ConnectivityManager) 
 		        getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -249,9 +269,14 @@ public class MainActivity extends ActionBarActivity {
 		if (networkInfo != null && networkInfo.isConnected()) {
 		     // fetch data
 			EditText userInput = (EditText) findViewById(R.id.input);
-			String input = userInput.getText().toString();
-			String url = "http://cs-server.usc.edu:36586/examples/servlet/HW8Servlet?symbol=" + input;
-			new QueryServletTask().execute(url);
+			System.out.println(userInput.getText().toString());
+			if(userInput.getText().toString().equals(""))
+				showNoInputAlert();
+			else{
+				String input = userInput.getText().toString();
+				String url = "http://cs-server.usc.edu:36586/examples/servlet/HW8Servlet?symbol=" + input;
+				new QueryServletTask().execute(url);
+			}
 		} else {
 		     // display error
 			WebView webview = (WebView) findViewById(R.id.webview);
