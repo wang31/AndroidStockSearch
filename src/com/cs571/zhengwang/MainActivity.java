@@ -208,7 +208,7 @@ public class MainActivity extends ActionBarActivity {
         		e.printStackTrace();
         	}
         } else {
-            displayToast("Login error");
+            //displayToast("Login error");
         }
     }
 	
